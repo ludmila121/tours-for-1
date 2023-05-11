@@ -1,16 +1,12 @@
-export const App = () => {
+import Header from './header/Header';
+import Tours from './tours';
+
+ const App = () => {
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: 40,
-        color: '#010101'
-      }}
-    >
-      React homework template
-    </div>
+    <>
+             <Header></Header>
+             <Tours></Tours>
+      </>
   );
 };
+export default App;
