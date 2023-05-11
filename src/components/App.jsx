@@ -1,12 +1,18 @@
 import Header from './header/Header';
 import Tours from './tours';
 
- const App = () => {
+import {DARK} from 'constants';
+
+import './App.scss';
+
+const App = () => {
+  const theme = DARK;
+
   return (
-    <>
-             <Header></Header>
-             <Tours></Tours>
-      </>
+      <div className='app-container'>
+             <Header theme={theme}></Header>
+             <Tours theme={theme}></Tours>
+      </div>
   );
 };
 export default App;
