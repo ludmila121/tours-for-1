@@ -1,7 +1,11 @@
+import React, {Component} from 'react';
 import ToursItem from "components/tours-item/ToursItem";
-import './Tours.css';
 
-const Tours = (props) => {
+import debounce from 'lodash.debounce';
+
+import './Tours.css';
+import ToursForm from 'components/tours-form/ToursForm';
+
     const toursArray = [
         {
             id: 1,
@@ -39,30 +43,59 @@ const Tours = (props) => {
             description: 'Best tour for discover Asia',
         },
     ];
-    const _getStyle =(nameOfTheme) => {
-        if (nameOfTheme === 'dark') {
-            return {
-                background: '#000',
-                color: '#fff',
-            };
-        }
-        return{
-            background: '#fff',
-            color: '#000',
-        };
-    };
         
-    return (
-        <section className="tours-page" style={_getStyle(props.theme)}>
-            <h1>Tours page:{props.baz}</h1>
-            <ul>
-                {toursArray.map((tour) => {
-                    return <ToursItem key={tour.id} {...tour} theme={props.theme}/>;
-                } )}
-            </ul>
-            {props.children}
-        </section>
-    );
-};
+    class Tours extends Component {
+        state = {
+            query: '',
+            visibleModal: false,
+            tours: toursArray,
+        };
+   
+        handleChangeQuery = ({ target: { value: query } }) => {
+            this.setState({ query });
+        };
+   
+        handleToggleModal = () => {
+            this.setState((state) => ({ visibleModal: !state.visibleModal }));
+        };
+   
+        handleAddTours = (tour) => {
+            this.setState((state) => ({
+                tours: [...state.tours, tour],
+            }));
+        };
+   
+        render() {
+            const { query, tours, visibleModal } = this.state;
+            return (
+                <>
+                    <ToursForm
+                        visible={visibleModal}
+                        onClose={this.handleToggleModal}
+                        onAddFunc={this.handleAddTours}
+                    />
+                    <section className='tours-page'>
+                        <div className='tours-page__controlls'>
+                            <h1>Tours page</h1>
+                            <input
+                                type='text'
+                                placeholder='search by name...'
+                                onChange={debounce(this.handleChangeQuery, 1000)}
+                            />
+                            <button onClick={this.handleToggleModal}>Open Modal</button>
+                        </div>
+   
+                        <ul>
+                            {tours
+                                .filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
+                                .map((tour) => (
+                                    <ToursItem key={tour.id} {...tour} {...this.props} />
+                                ))}
+                        </ul>
+                    </section>
+                </>
+            );
+        }
+    }
 
 export default Tours;
