@@ -10,6 +10,8 @@ import React, { Component } from 'react';
  	'Africa',
  	'North America',
  	'South America',
+	'Antarctica',
+ 	'Europe',
  	'Antarctica, Europe',
  	'Australia',
  ];
@@ -22,29 +24,44 @@ import React, { Component } from 'react';
  };
 
  class ToursForm extends Component {
- 	state = [...initialState];
+ 	state = {...initialState};
 
  	handleChangeValueInState = ({ target: { name, value } }) => {
  		this.setState({
  			[name]: value,
  		});
  	};
+handleToggleCheckedContinents = (e, continent) => {
+	const snapshot = [...this.state.selectedContinents];
+	const value = e.target.checked;
 
- 	handleSubmit = (e) => {
+	if (value) {
+		//Add to arr
+
+		snapshot.push(continent);
+	} else {
+         //Remove from arr
+
+		 const index = snapshot.findIndex((el) => el === continent);
+		 index >= 0 && snapshot.splice(index, 1);
+	}
+
+	this.setState({
+		selectedContinents: snapshot,
+	});
+};
+ 	
+handleSubmit = async(e) => {
  		e.preventDefault();
- 		const newTour = {
- 			...this.state,
- 			id: Math.round(Math.random() * 1000000),
- 		};
 
- 		this.props.onAddFunc(newTour);
+ 		this.props.onAddFunc({...this.state});
  		this.setState(initialState);
  		this.props.onClose();
  	};
 
  	render() {
  		const { visible, onClose } = this.props;
- 		const { name, price, continent, description } = this.state;
+ 		const { name, price, continent, description} = this.state;
 
  		return (
  			<Rodal visible={visible} onClose={onClose} height={600}>
@@ -53,7 +70,7 @@ import React, { Component } from 'react';
 
  					<form onSubmit={this.handleSubmit}>
  						<input
- 							type='radion'
+ 							type='text'
  							name='name'
  							className='default-input'
  							placeholder='tour name...'
@@ -61,8 +78,8 @@ import React, { Component } from 'react';
  							onChange={this.handleChangeValueInState}
  						/>
  						<input
- 							type='radion'
- 							name='name'
+ 							type='number'
+ 							name='price'
  							className='default-input'
  							placeholder='tour price...'
  							value={price}
@@ -76,11 +93,15 @@ import React, { Component } from 'react';
  							onChange={this.handleChangeValueInState}>
  							<option value='' disabled></option>
  							{continentOptions.map((el) => (
- 								<option value={el}>{el}</option>
+ 								<option key={el} 
+								value={el}>{el}
+								</option>
  							))}
  						</select>
 
- 						<textarea
+ 						
+						
+						<textarea
  							column={10}
  							rows={3}
  							type='text'

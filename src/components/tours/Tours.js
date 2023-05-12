@@ -5,51 +5,50 @@ import debounce from 'lodash.debounce';
 
 import './Tours.css';
 import ToursForm from 'components/tours-form/ToursForm';
-
-    const toursArray = [
-        {
-            id: 1,
-            name: 'Portugalia vibe 123', 
-            price: 3000, 
-            continent: 'Europe', 
-            // description: 'Best tour for discover Portugal', 
-        },
-        {
-            id: 2,
-            name: 'The breath of Italy',
-            price: 5000,
-            continent: 'Europe',
-            description: 'Best tour for discover Italia',
-        },
-        {
-            id: 3,
-            name: 'Spanish bullfight',
-            price: 1000,
-            continent: 'Europe',
-            // description: 'A new experience from watching a bullfight',
-        },
-        {
-            id: 4,
-            name: 'Germany race',
-            price: 15000,
-            continent: 'Europe',
-            description: 'A quick walk on the German autobahns',
-        },
-        {
-            id: 5,
-            name: 'Indian traditions',
-            price: 10000,
-            continent: 'Asia',
-            description: 'Best tour for discover Asia',
-        },
-    ];
-        
-    class Tours extends Component {
+import {addTour, deleteTourById, fetchTours} from 'api/tours';
+import moment from 'moment';
+   
+class Tours extends Component {
         state = {
             query: '',
             visibleModal: false,
-            tours: toursArray,
+            isLoading: false,
+            isError: false,
+            lastUpdateTime: null,
+            tours: {
+                total_items: 0,
+                item: [],
+            },
         };
+
+        handleFetchTours = asyns (query) => {
+            try {
+                this.setState({ isLoading: true});
+                const response = await fetchTours(query);
+                this.setState({
+                    tours: response,
+                    isLoading: false,
+                });
+            } catch (err) {
+                this.setState ({isLoading: false, isError: true});
+            }
+        };
+        
+        async componentDidMount () {
+            this.handleFetchTours();
+        }
+
+        async componentDidUpdate(prevProps, prevState, snapshot) {
+            if (prevProps.theme !== this.props.theme) {
+                this.setState({
+                    lastUpdateTime: moment().format('HH:mm:ss'),
+                });
+            }
+    
+            if (prevState.query !== this.state.query) {
+                this.handleFetchTours (this.state.query);
+            }
+        }
    
         handleChangeQuery = ({ target: { value: query } }) => {
             this.setState({ query });
@@ -59,14 +58,27 @@ import ToursForm from 'components/tours-form/ToursForm';
             this.setState((state) => ({ visibleModal: !state.visibleModal }));
         };
    
-        handleAddTours = (tour) => {
-            this.setState((state) => ({
-                tours: [...state.tours, tour],
-            }));
-        };
-   
+        handleAddTours = async (tour) => {
+            try {
+                await addTour(tour);
+                this.handleFetchTours.call(this);
+            } catch (err) {
+                this.setState({isError: true});
+            }
+                
+            };
+         handleDeleteTours = async (tourId) => {
+            try{
+                await deleteTourById(tourId);
+                this.handleFetchTours.call(this);
+            }catch (err) {
+                this.setState({ isError: true});
+            }
+         };
         render() {
-            const { query, tours, visibleModal } = this.state;
+            const { tours, visibleModal, isLoading, isError, lastUpdateTime } = this.state;
+            
+            
             return (
                 <>
                     <ToursForm
@@ -83,19 +95,38 @@ import ToursForm from 'components/tours-form/ToursForm';
                                 onChange={debounce(this.handleChangeQuery, 1000)}
                             />
                             <button onClick={this.handleToggleModal}>Open Modal</button>
+                            {lastUpdateTime && (
+                                <p>
+                                    Last update:
+                                    {lastUpdateTime}
+                                    </p>
+                            )}
                         </div>
-   
-                        <ul>
-                            {tours
-                                .filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
-                                .map((tour) => (
-                                    <ToursItem key={tour.id} {...tour} {...this.props} />
+                    
+                        { isLoading ?(
+                            <div>loading...</div>
+                        ) : (
+                        <>
+                        {isError ? ()
+                        <div>Something went wrong</div>
+                     ) :(  
+                         <ul>
+                            <h6>Total tours:{tours.total_items}</h6>   
+                            {tours.items.map((tour) => (
+                                    <ToursItem 
+                                    key={tour.id} 
+                                    onDelete = {this.handleDeleteTours}
+                        {...tours}  
+                        {...this.props}   
+                               />
                                 ))}
                         </ul>
-                    </section>
-                </>
-            );
-        }
-    }
+                        )}
+                    </>
+                     ) }
+                </section>
+           
+    </>
+
 
 export default Tours;
