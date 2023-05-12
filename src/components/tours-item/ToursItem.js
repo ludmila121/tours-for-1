@@ -1,26 +1,21 @@
 import PropTypes from 'prop-types';
 
 import './ToursItem.css';
+import clsx from 'clsx';
+import {LIGHT, DARK} from 'constants';
 
-const ToursItem = ({name, price, continent, description}) => {
-    const _getTheme = (nameOfTheme) => {
-        if (nameOfTheme === 'dark'){
-            return {
-                background: '#fff',
-                color: '#000',
-            };
-        }
-        return{
-            background: '#000',
-            color: '#fff',
-        };
-    };
+const ToursItem = ({name, price, continent, description, theme, onDelete}) => {
     return(
-                <li className='tours-item' style={_getTheme(theme)}>
+        <li 
+        className={clsx('tours-item',
+        {'dark-theme': theme === LIGHT, 
+        'light-theme': theme === DARK,
+         })}>
                     <p>Name:{name}</p>
                     <p>Price:{price}</p>
-                    <p>Continent{continent}:</p>
+                    <p>Continent:{continent}</p>
                     {description&& <p>Description:{description}</p>}
+                    <button onClick = {() => onDelete(id)}>Delete</button>
                 </li>
             );
         };
@@ -29,7 +24,7 @@ export default ToursItem;
 
 ToursItem.propTypes = {
     name: PropTypes.string.isRequired,
-    price: PropTypes.number.isRequired,
+    //price: PropTypes.number.isRequired,
     continent:PropTypes.string.isRequired,
     description: PropTypes.string, 
 };
